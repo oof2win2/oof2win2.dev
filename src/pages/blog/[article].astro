@@ -1,0 +1,61 @@
+---
+import { getCollection, getEntryBySlug } from "astro:content";
+import type { BlogSchema } from "../../content/config";
+import Layout from "../../layouts/Layout.astro";
+import PostHeader from "../../components/PostHeader.astro";
+
+export const getStaticPaths = async () => {
+	const articles = await getCollection("blog");
+	return articles.map((article) => {
+		return {
+			params: { article: article.slug },
+			props: { article },
+		};
+	});
+};
+
+type ArticleType = Awaited<ReturnType<typeof getCollection<"blog">>>[number];
+
+let article: ArticleType;
+
+if (Astro.props.article) {
+  	article = Astro.props.article;
+} else if (Astro.params.article) {
+	const { article: articleSlug } = Astro.params;
+	article = (await getEntryBySlug("blog", articleSlug)) as ArticleType;
+} else {
+  	throw Error("Invalid render condition");
+}
+
+const frontmatter = article.data as BlogSchema;
+
+const { Content, remarkPluginFrontmatter } = await article.render();
+---
+
+<Layout title={frontmatter.title}>
+  <link
+	slot="head"
+	rel="preload"
+	href="/fonts/canela/canela-deck-bold-compressed.woff2"
+	as="font"
+	type="font/woff2"
+	crossorigin
+  />
+  <article
+	class="flex flex-col mx-auto prose max-w-full prose-code:before:content-none prose-code:after:content-none text-base w-full"
+  >
+	<header class="w-full px-6 pt-6xl pb-3xl article-grid">
+	  <PostHeader
+		date={frontmatter.date}
+		title={frontmatter.title}
+		description={frontmatter.description}
+		slug={article.slug}
+	  />
+	</header>
+	<main
+	  class="main-article article-grid px-6 lg:px-0 larger-line-height text-xl lg:text-2xl leading-10 my-2xl color-text-700 leading-looser w-full"
+	>
+	  <Content />
+	</main>
+  </article>
+</Layout>

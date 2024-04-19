@@ -1,51 +1,33 @@
 ---
-interface Props {
-	title: string;
-}
+// we use Geist Sans as a base font and Geist Mono as a monospaced font
+import '@fontsource/geist-sans'
+import '@fontsource/geist-mono'
 
-const { title } = Astro.props;
+import BaseHead from "../components/BaseHead.astro"
+import Navbar from '../components/Navbar.astro';
+
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
-		<meta charset="UTF-8" />
-		<meta name="description" content="Astro description" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>{title}</title>
+		<BaseHead title="Base" />
 	</head>
 	<body>
+		<Navbar />
 		<slot />
 	</body>
 </html>
-<style is:global>
-	:root {
-		--accent: 136, 58, 234;
-		--accent-light: 224, 204, 250;
-		--accent-dark: 49, 10, 101;
-		--accent-gradient: linear-gradient(
-			45deg,
-			rgb(var(--accent)),
-			rgb(var(--accent-light)) 30%,
-			white 60%
-		);
-	}
+
+<style>
 	html {
-		font-family: system-ui, sans-serif;
-		background: #13151a;
-		background-size: 224px;
+		background-color: #e5e5f733;
+		background-image:  linear-gradient(#bbbcdb33 0.8px, transparent 0.8px), linear-gradient(to right, #bbbcdb33 0.8px, #e5e5f733 0.8px);
+		background-size: 16px 16px;
 	}
-	code {
-		font-family:
-			Menlo,
-			Monaco,
-			Lucida Console,
-			Liberation Mono,
-			DejaVu Sans Mono,
-			Bitstream Vera Sans Mono,
-			Courier New,
-			monospace;
+	html.dark {
+		background-color: #000000D9;
+		background-image:  linear-gradient(#ebd5d529 0.8px, transparent 0.8px), linear-gradient(to right, #ebd5d529 0.8px, #000000d9 0.8px);
+		background-size: 16px 16px;
 	}
 </style>

@@ -1,0 +1,69 @@
+---
+export interface Props {
+	title: string;
+	description?: string;
+	themeColor?: string;
+}
+
+const { title, description, themeColor } = Astro.props;
+---
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width" />
+<meta name="description" content={description ?? "oof2win2's Blog"} />
+<link rel="icon" type="image/png" href="/oof2win2_favicon.png" />
+<meta name="theme-color" content={themeColor ?? "#f5c4c6"} />
+<meta name="generator" content={Astro.generator} />
+<slot name="head" />
+<title>{title}</title>
+<!-- Repeating a little bit of code here to make sure this is inlined properly -->
+<script is:inline>
+  const modes = ["dark", "light", "system"];
+
+  const DEFAULT_THEME_MODE = "system";
+  const THEME_KEY = "theme";
+
+  function isMode(input) {
+    return modes.includes(input);
+  }
+
+  function getColorMode() {
+    const preferenceRaw = localStorage.getItem(THEME_KEY);
+    const isValid = preferenceRaw && isMode(preferenceRaw);
+
+    let preference = isValid ? preferenceRaw : DEFAULT_THEME_MODE;
+
+    if (!isValid) {
+      setThemeDisplay(DEFAULT_THEME_MODE);
+    }
+
+    return preference;
+  }
+
+  function setKnownTheme(theme) {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem(THEME_KEY, theme);
+  }
+
+  function setThemeDisplay(mode) {
+    setKnownTheme(mode === "system" ? "light" : mode);
+  }
+
+  function addThemeChangeListener(f) {
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", (e) => {
+        console.info(`Theme was changed`);
+        const darkModeOn = e.matches;
+        f(darkModeOn ? "dark" : "light");
+      });
+  }
+
+  const theme = getColorMode();
+  addThemeChangeListener(setKnownTheme);
+  setThemeDisplay(theme);
+</script>

@@ -1,0 +1,15 @@
+---
+interface Props {
+	date: Date
+	title: string
+	description: string
+	slug: string
+}
+const {date, title, description, slug} = Astro.props
+---
+
+<div>
+	<h1>{title}</h1>
+	<p>{description}</p>
+	<p>Published on {date.toLocaleDateString()}</p>
+</div>
