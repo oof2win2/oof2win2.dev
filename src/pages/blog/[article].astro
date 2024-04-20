@@ -33,14 +33,6 @@ const { Content, remarkPluginFrontmatter } = await article.render();
 ---
 
 <Layout title={frontmatter.title}>
-  <link
-	slot="head"
-	rel="preload"
-	href="/fonts/canela/canela-deck-bold-compressed.woff2"
-	as="font"
-	type="font/woff2"
-	crossorigin
-  />
   <article
 	class="flex flex-col mx-auto prose max-w-full prose-code:before:content-none prose-code:after:content-none text-base w-full"
   >
@@ -53,7 +45,7 @@ const { Content, remarkPluginFrontmatter } = await article.render();
 	  />
 	</header>
 	<main
-	  class="main-article article-grid px-6 lg:px-0 larger-line-height text-xl lg:text-2xl leading-10 my-2xl color-text-700 leading-looser w-full"
+	  class="main-article mx-auto article-grid px-6 lg:px-0 larger-line-height text-xl lg:text-2xl leading-10 color-text-700 leading-looser max-w-5xl dark:text-slate-300 text-slate-600 prose-h1:text-3xl prose-h1:text-slate-700 dark:prose-h1:text-slate-100 prose-a:text-slate-900 dark:prose-a:text-slate-50 prose-code:text-slate-800 dark:prose-code:text-slate-100"
 	>
 	  <Content />
 	</main>

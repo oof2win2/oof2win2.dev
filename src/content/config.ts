@@ -4,7 +4,7 @@ import { z, defineCollection } from "astro:content";
 const BlogSchema = z.object({
 	title: z.string(),
 	description: z.string(),
-	date: z.string().transform((arg) => new Date(arg)),
+	date: z.date(),
 });
 
 export type BlogSchema = z.infer<typeof BlogSchema>;

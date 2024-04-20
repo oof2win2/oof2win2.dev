@@ -1,3 +1,5 @@
+import typography from "@tailwindcss/typography";
+
 /** @type {import('tailwindcss').Config} */
 export default {
 	content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
@@ -34,8 +36,9 @@ export default {
 					900: "#3d3d3d",
 					950: "#2b2b2b",
 				},
+				darkbg: "#000336",
 			},
 		},
 	},
-	plugins: [],
+	plugins: [typography],
 };
