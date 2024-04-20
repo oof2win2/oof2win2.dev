@@ -3,15 +3,21 @@
 import '@fontsource/geist-sans'
 import '@fontsource/geist-mono'
 
-import BaseHead from "../components/BaseHead.astro"
+import BaseHead, {type Props as BaseHeadProps} from "../components/BaseHead.astro"
 import Navbar from '../components/Navbar.astro';
 
+export interface Props extends BaseHeadProps {
+
+}
+const {...props} = Astro.props
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title="Base" />
+		<BaseHead {...props}>
+			<slot name="head" slot="head" />
+		</BaseHead>
 	</head>
 	<body class="dark:bg-darkbg bg-white">
 		<div class="bg-[url('/background.svg')] dark:bg-[url('/background-dark.svg')] absolute top-0 left-0 w-full h-full z-[-1]" />
