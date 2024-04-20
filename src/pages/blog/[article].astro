@@ -29,7 +29,7 @@ if (Astro.props.article) {
 
 const frontmatter = article.data as BlogSchema;
 
-const { Content, remarkPluginFrontmatter } = await article.render();
+const { Content } = await article.render();
 ---
 
 <Layout title={frontmatter.title}>
