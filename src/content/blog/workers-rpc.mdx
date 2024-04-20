@@ -1,7 +1,149 @@
 ---
-title: Experimenting with Cloudflare Workers RPC and here goes even more yap yap yap
-date: 2024-04-19
+title: Experimenting with Cloudflare Workers RPC
+date: 2024-04-20
 description: RPC is cool and all... until it stops working unexpectedly
 slug: workers-rpc
 ---
 
+For a while now, I have been working on a project called FDGL (Factorio Distributed Griefer List).
+The main point of the whole project is to have a central database of violations of rules
+(we call violations "reports" and rules "categories"), so that any record can be found by everyone.
+Recently, I began on a rework of the project so that it works better and I decided to go with
+Cloudflare Workers as my hosting of choice. Since multiple services use the same exact backend,
+I decided to utilize the new [RPC support](https://developers.cloudflare.com/workers/runtime-apis/rpc/)
+that Workers have been given. I have encountered some issues when building this, so I decided that I will
+share my experience with Workers RPC.
+
+After getting the initial setup right - it took me ages, which is however my fault for not reading the docs
+correctly - I was able to communicate between my two workers. Great! Now I needed to migrate my whole backend
+into its separate worker so that it could be exposed with a backend, and accessed by a Discord bot. I naively
+thought that any implementation would work. Previously, I wrote multiple API wrappers for clients. Every "base route"
+(such as "/users") would be its own class with methods for various endpoints, so you could access
+say a "/users/:id" on `api.users.fetchById(id)`. This setup is not too difficult to implement. I decided to
+do essentially the same, but I would replace calls to an API with calls to the database and some backend logic.
+Additionally, I needed to add some getters to be able to access this over the RPC boundary.
+
+```ts
+class Users {
+	constructor(private db: Kysely<DB>) {}
+	async fetchById(id: string): Promise<User | null> {
+		return await this.db
+			.selectFrom("users")
+			.selectAll()
+			.where("id", "=", id)
+			.executeTakeFirst()
+	}
+}
+
+class API {
+	#users: Users
+	constructor(private db: Kysely<DB>) {
+		this.#users = new Users(db)
+	}
+	get users() {
+		return this.#users
+	}
+}
+```
+
+Amazing! Now, to get it set up in a Worker instance, test `API.users.fetchById`, and...
+
+I get an error. `The RPC receiver does not implement the method "categories".` What?
+That makes no sense. `categories` is a property that I can access through a getter.
+That should definitely work. Well, let's replace the call with a `users__getUserById`
+and implement that on the RPC worker. Huh. That works. What's up?
+
+As it turns out, reading the announcements *does* in fact help. It might not be in the docs,
+but the announcement post directly states "you can pass [Structured Clonable](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm#supported_types)
+types as the params or return value of an RPC". Those types are the basic types,
+such as Array, Boolean, Map, Number, String, and most importantly, Object - but
+only "plain" objects. The announcement post also states that I can pass functions
+in and out, or objects with methods - this is important for later. Searching
+MDN and the internet tells me that a plain object is basically just `{}`.
+The issue is that a class instance is *not* a simple
+`{}` creation, so what does that mean for me and my backend?
+
+Turns out, I can utilize some interesting features of JavaScript and TypeScript in order to
+achieve my goal, `Function.prototype.bind()` being the main star here. You can call `.bind()`
+on any function, and as a first parameter, you provide it it's `this` variable. Any time the
+bound function is called, instead of referencing itself, it can reference the object provided
+as its `this`. See the modified example from MDN below.
+
+```js
+const module = {
+  x: 42,
+  getX: function () {
+    return this.x;
+  },
+};
+
+const boundGetX = module.getX.bind(module);
+const unboundGetX = module.getX
+console.log(unboundGetX(), boundGetX()) // undefined, 42
+module.x = 44
+console.log(unboundGetX(), boundGetX()) // undefined, 44
+```
+
+I can utilize it pretty nicely. Remember how we can pass objects with methods
+through Workers RPC? Well, `bind` allows us to create a *new function* which calls
+the original with the new parameters. This means that essentially, we aren't
+calling `module.getX`, but a function that through inner JS workings calls
+`module.getX` eventually and returns our desired answer. A similar process
+can be applied to classes, but you wouldn't usually do this - the
+bound function does the same thing as the unbound one, only with some inner JS
+quirks in between. However, these inner JS quirks are what we are after here -
+we get a new function that returns our result, but importantly, we don't need to
+pass the `Users` object over RPC - instead, we can "recreate" it using `.bind()` calls.
+
+```ts
+class Users {
+	constructor(private db: Kysely<DB>) {}
+	async fetchById(id: string): Promise<User | null> {
+		return await this.db
+			.selectFrom("users")
+			.selectAll()
+			.where("id", "=", id)
+			.executeTakeFirst()
+	}
+}
+
+class API {
+	#users: Users
+	constructor(private db: Kysely<DB>) {
+		this.#users = new Users(db)
+	}
+	get users() {
+		return {
+			fetchById: this.#users.fetchById.bind(this.#users)
+		}
+	}
+}
+```
+
+In the example above, a call on `API.users.fetchById` would be proxied, and thus
+a direct object is not passed - that means we pass all criteria for Workers RPC
+to be able to send our methods over successfuly! With a dash of type magic, we can
+improve our getter to error if we don't have some methods from the `Users` class
+implemented, and now we have backend working again - just over RPC.
+
+```ts
+type PickMatching<T, V> = {
+	[K in keyof T as T[K] extends V ? K : never]: T[K];
+};
+// biome-ignore lint/complexity/noBannedTypes: it's okay here as it is only a picker
+type ExtractMethods<T> = PickMatching<T, Function>;
+
+class API {
+	// ...
+	get users() {
+		return {
+			fetchById: this.#users.fetchById.bind(this.#users)
+		} satisfies ExtractMethods<Users>
+	}
+}
+```
+
+There are a couple more interesting things that I'll be solving with Workers in
+the very close future, such as synchronization of state with distributed clients
+that I do not directly control, but those will need to wait until I actually have
+any idea on how to solve them (properly).
