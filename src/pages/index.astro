@@ -7,10 +7,10 @@ const allPosts = await getCollection("blog");
 ---
 
 <Layout title="oof2win2">
-	<main class="w-[800px] m-auto max-w-[calc(100% - 2rem)] p-2">
+	<main class="mx-auto max-md:mx-0 max-w-[calc(100% - 2rem)] p-2">
 		<h1 class="text-center text-6xl mb-4 text-base-950 dark:text-base-200">Hey there, I'm <span class="font-black">oof2win2</span>.</h1>
 
-		<div class="space-y-2 text-base-950 dark:text-base-200 p-8 m-4 bg-base-200/50 dark:bg-slate-900 rounded-2xl">
+		<div class="space-y-2 text-base-950 dark:text-base-200 p-8 m-4 bg-base-200/50 dark:bg-slate-900 rounded-2xl text-justify">
 			<p>
 				I like making stuff, playing with stuff, and screwing it all up.
 				I'll be studying Informatics at Charles University starting this
@@ -24,7 +24,7 @@ const allPosts = await getCollection("blog");
 			</p>
 		</div>
 
-		<ul role="list" class="flex flex-col gap-8 p-0">
+		<ul role="list" class="flex flex-col gap-y-8">
 			{
 				allPosts.map((post) => (
 					<Card

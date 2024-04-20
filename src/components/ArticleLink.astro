@@ -9,16 +9,16 @@ interface Props {
 const { href, title, body, postedAt } = Astro.props;
 ---
 
-<li class="flex p-1 bg-slate-200 dark:bg-slate-800 rounded-2xl shadow-inner">
-	<a href={href} rel="prefetch" class="w-full no-underline p-[1.5rem] rounded-xl text-white bg-slate-300/50 dark:bg-slate-900/50">
+<li class="flex bg-slate-300/50 dark:bg-slate-900/50 rounded-2xl shadow-inner p-8 m-4">
+	<a href={href} rel="prefetch" class="w-full no-underline p-[1.5rem] rounded-xl text-white">
 		<h2 class="text-xl text-slate-900 dark:text-slate-300">
 			{title}
 		</h2>
-		<div class="flex flex-row text-slate-700 dark:text-slate-400 text-sm gap-4 justify-between mt-4">  
-			<p>
+		<div class="flex min-md:flex-row max-md:flex-col text-slate-700 dark:text-slate-400 text-sm gap-4 justify-between mt-4">  
+			<p class="">
 				{body}
 			</p>
-			<p>Posted on {postedAt.toLocaleDateString()}</p>
+			<p class="max-md:self-end text-slate-400 dark:text-slate-600">Published <span class="text-slate-600 dark:text-slate-400">{postedAt.toLocaleDateString()}</span></p>
 		</div>
 	</a>
 </li>
