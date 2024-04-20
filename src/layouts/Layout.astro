@@ -13,21 +13,9 @@ import Navbar from '../components/Navbar.astro';
 	<head>
 		<BaseHead title="Base" />
 	</head>
-	<body>
+	<body class="dark:bg-[#000336] bg-white">
+		<div class="bg-[url('/background.svg')] dark:bg-[url('/background-dark.svg')] absolute top-0 left-0 w-full h-full z-[-1]" />
 		<Navbar />
 		<slot />
 	</body>
 </html>
-
-<style>
-	html {
-		background-color: #e5e5f733;
-		background-image:  linear-gradient(#bbbcdb33 0.8px, transparent 0.8px), linear-gradient(to right, #bbbcdb33 0.8px, #e5e5f733 0.8px);
-		background-size: 16px 16px;
-	}
-	html.dark {
-		background-color: #000000D9;
-		background-image:  linear-gradient(#ebd5d529 0.8px, transparent 0.8px), linear-gradient(to right, #ebd5d529 0.8px, #000000d9 0.8px);
-		background-size: 16px 16px;
-	}
-</style>
